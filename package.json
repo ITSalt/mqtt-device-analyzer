@@ -1,0 +1,25 @@
+{
+  "name": "mqtt-device-analyzer",
+  "version": "1.0.0",
+  "description": "MQTT broker for IoT device protocol reverse engineering",
+  "main": "mqtt-broker.js",
+  "scripts": {
+    "start": "node mqtt-broker.js",
+    "dev": "nodemon mqtt-broker.js"
+  },
+  "keywords": [
+    "mqtt",
+    "iot",
+    "reverse-engineering",
+    "protocol-analysis"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "aedes": "^0.48.1",
+    "websocket-stream": "^5.5.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
