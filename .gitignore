@@ -1,0 +1,6 @@
+node_modules/
+mqtt_logs/
+*.log
+.env
+.DS_Store
+payload_*.bin
