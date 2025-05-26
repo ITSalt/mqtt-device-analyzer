@@ -1,3 +1,4 @@
+const process = require('process');
 const aedes = require('aedes')();
 const ws = require('websocket-stream');
 const net = require('net');
@@ -179,3 +180,54 @@ aedes.on('error', (err) => {
 
 console.log('MQTT брокер-анализатор запущен!');
 console.log('Логи сохраняются в:', logsDir);
+
+// Добавляем graceful shutdown
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);
+
+async function shutdown() {
+  console.log('Получен сигнал завершения, закрываем соединения...');
+
+  // Закрываем серверы
+  tcpServer.close(() => {
+    console.log('TCP сервер остановлен');
+  });
+
+  wsServer.close(() => {
+    console.log('WebSocket сервер остановлен');
+  });
+
+  // Закрываем брокер
+  aedes.close(() => {
+    console.log('MQTT брокер остановлен');
+    process.exit(0);
+  });
+
+  // Принудительное завершение через 10 секунд
+  setTimeout(() => {
+    console.error('Принудительное завершение');
+    process.exit(1);
+  }, 10000);
+}
+
+// Сигнал готовности для PM2
+if (process.send) {
+  process.send('ready');
+}
+
+// Обработка неперехваченных ошибок
+process.on('uncaughtException', (err) => {
+  console.error('Неперехваченная ошибка:', err);
+  fs.appendFileSync(
+    path.join(logsDir, 'errors.log'),
+    `${new Date().toISOString()} | UNCAUGHT | ${err.stack}\n`
+  );
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Необработанный rejection:', reason);
+  fs.appendFileSync(
+    path.join(logsDir, 'errors.log'),
+    `${new Date().toISOString()} | UNHANDLED | ${reason}\n`
+  );
+});

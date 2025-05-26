@@ -5,7 +5,19 @@
   "main": "mqtt-broker.js",
   "scripts": {
     "start": "node mqtt-broker.js",
-    "dev": "nodemon mqtt-broker.js"
+    "dev": "nodemon mqtt-broker.js",
+    "pm2:start": "pm2 start ecosystem.config.js",
+    "pm2:start:dev": "pm2 start ecosystem.config.js --env development",
+    "pm2:stop": "pm2 stop mqtt-device-analyzer",
+    "pm2:restart": "pm2 restart mqtt-device-analyzer",
+    "pm2:reload": "pm2 reload mqtt-device-analyzer",
+    "pm2:delete": "pm2 delete mqtt-device-analyzer",
+    "pm2:logs": "pm2 logs mqtt-device-analyzer",
+    "pm2:monit": "pm2 monit",
+    "pm2:status": "pm2 status",
+    "pm2:setup": "chmod +x setup-pm2.sh && ./setup-pm2.sh",
+    "logs:clean": "rm -rf logs/*.log mqtt_logs/*.log",
+    "logs:backup": "tar -czf logs-backup-$(date +%Y%m%d-%H%M%S).tar.gz logs/ mqtt_logs/"
   },
   "keywords": [
     "mqtt",
@@ -13,7 +25,7 @@
     "reverse-engineering",
     "protocol-analysis"
   ],
-  "author": "Your Name",
+  "author": "Magz Nikitin",
   "license": "MIT",
   "dependencies": {
     "aedes": "^0.48.1",
