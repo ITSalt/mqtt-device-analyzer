@@ -1,0 +1,22 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  mqtt-analyzer:
+    build: .
+    ports:
+      - "1883:1883"   # MQTT
+      - "8887:8887"   # WebSocket
+      - "3001:3001"   # Health check
+    volumes:
+      - ./logs:/app/logs
+      - ./mqtt_logs:/app/mqtt_logs
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
