@@ -17,7 +17,16 @@
     "pm2:status": "pm2 status",
     "pm2:setup": "chmod +x setup-pm2.sh && ./setup-pm2.sh",
     "logs:clean": "rm -rf logs/*.log mqtt_logs/*.log",
-    "logs:backup": "tar -czf logs-backup-$(date +%Y%m%d-%H%M%S).tar.gz logs/ mqtt_logs/"
+    "logs:backup": "tar -czf logs-backup-$(date +%Y%m%d-%H%M%S).tar.gz logs/ mqtt_logs/",
+    "certs:generate": "chmod +x scripts/generate-certs.sh && ./scripts/generate-certs.sh",
+    "test:connections": "node scripts/test-connections.js",
+    "health": "curl -s http://localhost:3001/health | jq || curl -s http://localhost:3001/health",
+    "setup": "npm install && npm run certs:generate",
+    "setup:domain": "npm install && MQTT_DOMAIN=$npm_config_domain npm run certs:generate",
+    "config:copy": "cp domain-config.example .env",
+    "domain:info": "echo 'Current domain:' && echo ${MQTT_DOMAIN:-localhost}",
+    "deploy:staging": "MQTT_DOMAIN=mqtt-staging.yourdomain.com npm run pm2:start",
+    "deploy:prod": "MQTT_DOMAIN=mqtt.yourdomain.com npm run pm2:start"
   },
   "keywords": [
     "mqtt",
