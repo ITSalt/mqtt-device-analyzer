@@ -54,8 +54,16 @@ class WSSTransport extends BaseTransport {
     });
 
     this.httpsServer.on('tlsClientError', (error, socket) => {
-      console.error(`🔐 WSS TLS ошибка от ${socket.remoteAddress}:`, error.message);
-      this.logError(error, `TLS client error from ${socket.remoteAddress}`);
+      const clientIP = socket.remoteAddress;
+      console.error(`🔐 WSS TLS ошибка от ${clientIP}:`, error.message);
+      
+      // Детальная информация об ошибке
+      if (error.message.includes('certificate unknown')) {
+        console.error(`   💡 Подсказка: Клиент не доверяет SSL сертификату.`);
+        console.error(`   💡 Возможно, нужно пересоздать сертификат для домена или использовать --insecure`);
+      }
+      
+      this.logError(error, `TLS client error from ${clientIP} - ${this.getTLSErrorHint(error.message)}`);
     });
 
     this.httpsServer.on('error', (error) => {
@@ -96,6 +104,20 @@ class WSSTransport extends BaseTransport {
     }
     
     return Promise.all(promises);
+  }
+
+  getTLSErrorHint(errorMessage) {
+    if (errorMessage.includes('certificate unknown')) {
+      return 'Certificate not trusted by client';
+    } else if (errorMessage.includes('handshake failure')) {
+      return 'TLS handshake failed';
+    } else if (errorMessage.includes('certificate verify failed')) {
+      return 'Certificate verification failed';
+    } else if (errorMessage.includes('unknown ca')) {
+      return 'Certificate Authority unknown';
+    } else {
+      return 'SSL/TLS error';
+    }
   }
 
   async healthCheck() {

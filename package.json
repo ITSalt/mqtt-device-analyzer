@@ -19,6 +19,8 @@
     "logs:clean": "rm -rf logs/*.log mqtt_logs/*.log",
     "logs:backup": "tar -czf logs-backup-$(date +%Y%m%d-%H%M%S).tar.gz logs/ mqtt_logs/",
     "certs:generate": "chmod +x scripts/generate-certs.sh && ./scripts/generate-certs.sh",
+    "certs:recreate": "rm -rf certs/ && npm run certs:generate",
+    "certs:check": "node scripts/check-ssl.js",
     "test:connections": "node scripts/test-connections.js",
     "health": "curl -s http://localhost:3001/health | jq || curl -s http://localhost:3001/health",
     "setup": "npm install && npm run certs:generate",

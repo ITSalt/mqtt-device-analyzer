@@ -310,15 +310,34 @@ tail -f mqtt_logs/messages.log
 
 ### Проблемы с SSL
 
+#### Ошибка "certificate unknown"
 ```bash
-# Перегенерация сертификатов
-rm -rf certs/
-MQTT_DOMAIN=mqtt.yourdomain.com npm run certs:generate
+# Пересоздание сертификатов для правильного домена
+MQTT_DOMAIN=mqtt-test.itsalt.ru npm run certs:recreate
 
+# Или вручную
+rm -rf certs/
+MQTT_DOMAIN=mqtt-test.itsalt.ru npm run certs:generate
+
+# Проверка домена в сертификате
+openssl x509 -in certs/server.crt -text -noout | grep -E "(Subject:|DNS:|IP Address:)"
+```
+
+#### Права доступа
+```bash
 # Проверка прав доступа
 ls -la certs/
 chmod 600 certs/server.key
 chmod 644 certs/server.crt
+```
+
+#### Тестирование SSL соединения
+```bash
+# Проверка MQTTS соединения
+openssl s_client -connect mqtt-test.itsalt.ru:8883 -servername mqtt-test.itsalt.ru
+
+# Проверка WSS соединения
+openssl s_client -connect mqtt-test.itsalt.ru:8888 -servername mqtt-test.itsalt.ru
 ```
 
 ### Проблемы с доменом
