@@ -355,16 +355,30 @@ if (process.send) {
 // Обработка неперехваченных ошибок
 process.on('uncaughtException', (err) => {
   console.error('Неперехваченная ошибка:', err);
-  fs.appendFileSync(
-    path.join(logsDir, 'errors.log'),
-    `${new Date().toISOString()} | UNCAUGHT | ${err.stack}\n`
-  );
+  try {
+    fs.appendFileSync(
+      path.join(logsDir, 'errors.log'),
+      `${new Date().toISOString()} | UNCAUGHT | ${err.stack}\n`
+    );
+  } catch (logError) {
+    console.error('Не удалось записать в лог:', logError.message);
+  }
+  
+  // Не завершаем процесс сразу, даем время для graceful shutdown
+  setTimeout(() => {
+    console.error('Принудительное завершение после неперехваченной ошибки');
+    process.exit(1);
+  }, 5000);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
   console.error('Необработанный rejection:', reason);
-  fs.appendFileSync(
-    path.join(logsDir, 'errors.log'),
-    `${new Date().toISOString()} | UNHANDLED | ${reason}\n`
-  );
+  try {
+    fs.appendFileSync(
+      path.join(logsDir, 'errors.log'),
+      `${new Date().toISOString()} | UNHANDLED | ${reason}\n`
+    );
+  } catch (logError) {
+    console.error('Не удалось записать в лог:', logError.message);
+  }
 });
