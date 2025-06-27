@@ -54,3 +54,5 @@ class PatternAnalyzer {
     return [];
   }
 }
+
+module.exports = PatternAnalyzer;
