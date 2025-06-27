@@ -1,0 +1,64 @@
+# domain-config.example - Пример конфигурации для развертывания
+
+# ===== ДОМЕН И SSL =====
+# Укажите ваш домен (обязательно для продакшена)
+MQTT_DOMAIN=localhost
+# Примеры для продакшена:
+# MQTT_DOMAIN=mqtt.yourdomain.com
+# MQTT_DOMAIN=broker.company.com
+
+# SSL сертификат (данные для генерации)
+SSL_COUNTRY=US
+SSL_STATE=California
+SSL_CITY=San Francisco
+SSL_ORG="MQTT Device Analyzer"
+SSL_OU="IT Department"
+
+# ===== ПРОТОКОЛЫ =====
+# Включение/отключение протоколов
+ENABLE_MQTT=true
+ENABLE_MQTTS=true
+ENABLE_WS=true
+ENABLE_WSS=true
+
+# ===== ПОРТЫ =====
+MQTT_PORT=1883
+MQTTS_PORT=8883
+WS_PORT=8887
+WSS_PORT=8888
+HEALTH_PORT=3001
+
+# ===== SSL НАСТРОЙКИ =====
+SSL_ENABLED=true
+SSL_KEY_PATH=./certs/server.key
+SSL_CERT_PATH=./certs/server.crt
+SSL_REJECT_UNAUTHORIZED=false
+
+# ===== ЛОГИРОВАНИЕ =====
+LOG_LEVEL=info
+LOG_DIR=./mqtt_logs
+
+# ===== БРОКЕР =====
+HEARTBEAT_INTERVAL=60000
+CONNECT_TIMEOUT=30000
+MAX_CONNECTIONS=1000
+
+# ===== PM2 =====
+NODE_ENV=production
+
+# ===== ПРИМЕРЫ ДЛЯ РАЗЛИЧНЫХ СЦЕНАРИЕВ =====
+
+# Локальная разработка
+# MQTT_DOMAIN=localhost
+# ENABLE_MQTTS=false
+# ENABLE_WSS=false
+# SSL_ENABLED=false
+
+# Staging сервер
+# MQTT_DOMAIN=mqtt-staging.yourdomain.com
+# SSL_REJECT_UNAUTHORIZED=false
+
+# Продакшен
+# MQTT_DOMAIN=mqtt.yourdomain.com
+# SSL_REJECT_UNAUTHORIZED=true
+# LOG_LEVEL=warn 

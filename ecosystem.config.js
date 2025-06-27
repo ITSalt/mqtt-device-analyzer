@@ -14,13 +14,46 @@ module.exports = {
     // Переменные окружения
     env: {
       NODE_ENV: 'production',
-      MQTT_PORT: 1883,
-      WS_PORT: 8887,
-      LOG_LEVEL: 'info'
+      
+      // Домен (обязательно для продакшена)
+      MQTT_DOMAIN: process.env.MQTT_DOMAIN || 'localhost',
+      SSL_COUNTRY: process.env.SSL_COUNTRY || 'US',
+      SSL_STATE: process.env.SSL_STATE || 'California', 
+      SSL_CITY: process.env.SSL_CITY || 'San Francisco',
+      SSL_ORG: process.env.SSL_ORG || 'MQTT Device Analyzer',
+      SSL_OU: process.env.SSL_OU || 'IT Department',
+      
+      // Порты
+      MQTT_PORT: process.env.MQTT_PORT || 1883,
+      MQTTS_PORT: process.env.MQTTS_PORT || 8883,
+      WS_PORT: process.env.WS_PORT || 8887,
+      WSS_PORT: process.env.WSS_PORT || 8888,
+      HEALTH_PORT: process.env.HEALTH_PORT || 3001,
+      
+      // Протоколы (включены по умолчанию)
+      ENABLE_MQTT: process.env.ENABLE_MQTT || 'true',
+      ENABLE_MQTTS: process.env.ENABLE_MQTTS || 'true', 
+      ENABLE_WS: process.env.ENABLE_WS || 'true',
+      ENABLE_WSS: process.env.ENABLE_WSS || 'true',
+      
+      // SSL настройки
+      SSL_ENABLED: process.env.SSL_ENABLED || 'true',
+      SSL_KEY_PATH: process.env.SSL_KEY_PATH || './certs/server.key',
+      SSL_CERT_PATH: process.env.SSL_CERT_PATH || './certs/server.crt',
+      SSL_REJECT_UNAUTHORIZED: process.env.SSL_REJECT_UNAUTHORIZED || 'false',
+      
+      // Логирование
+      LOG_LEVEL: process.env.LOG_LEVEL || 'info',
+      LOG_DIR: process.env.LOG_DIR || './mqtt_logs'
     },
     env_development: {
       NODE_ENV: 'development',
-      LOG_LEVEL: 'debug'
+      LOG_LEVEL: 'debug',
+      
+      // В разработке можно отключить SSL протоколы
+      ENABLE_MQTTS: 'false',
+      ENABLE_WSS: 'false',
+      SSL_ENABLED: 'false'
     },
 
     // Логирование
