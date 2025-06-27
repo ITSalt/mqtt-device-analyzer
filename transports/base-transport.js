@@ -9,6 +9,7 @@ class BaseTransport extends EventEmitter {
     this.name = name;
     this.port = port;
     this.config = config;
+    this.configData = config.get(); // Получаем данные конфигурации
     this.server = null;
     this.isRunning = false;
     this.connections = new Map();
@@ -111,23 +112,31 @@ class BaseTransport extends EventEmitter {
 
   // Логирование
   logConnection(action, clientId) {
-    const timestamp = new Date().toISOString();
-    const logEntry = `${timestamp} | ${action} | Transport: ${this.name} | Port: ${this.port} | Client: ${clientId}\n`;
-    
-    fs.appendFileSync(
-      path.join(this.config.logging.directory, 'connections.log'),
-      logEntry
-    );
+    try {
+      const timestamp = new Date().toISOString();
+      const logEntry = `${timestamp} | ${action} | Transport: ${this.name} | Port: ${this.port} | Client: ${clientId}\n`;
+      
+      fs.appendFileSync(
+        path.join(this.configData.logging.directory, 'connections.log'),
+        logEntry
+      );
+    } catch (error) {
+      console.error(`❌ Ошибка логирования подключения в ${this.name}:`, error.message);
+    }
   }
 
   logError(error, context = '') {
-    const timestamp = new Date().toISOString();
-    const logEntry = `${timestamp} | ERROR | Transport: ${this.name} | Context: ${context} | Error: ${error.message}\n`;
-    
-    fs.appendFileSync(
-      path.join(this.config.logging.directory, 'errors.log'),
-      logEntry
-    );
+    try {
+      const timestamp = new Date().toISOString();
+      const logEntry = `${timestamp} | ERROR | Transport: ${this.name} | Context: ${context} | Error: ${error.message}\n`;
+      
+      fs.appendFileSync(
+        path.join(this.configData.logging.directory, 'errors.log'),
+        logEntry
+      );
+    } catch (logError) {
+      console.error(`❌ Ошибка логирования ошибки в ${this.name}:`, logError.message);
+    }
   }
 
   // Получение статистики
