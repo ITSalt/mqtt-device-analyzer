@@ -11,6 +11,7 @@ class BrokerConfig {
         mqtts: parseInt(process.env.MQTTS_PORT) || 8883,
         ws: parseInt(process.env.WS_PORT) || 8887,
         wss: parseInt(process.env.WSS_PORT) || 8888,
+        ocpp: parseInt(process.env.OCPP_PORT) || 8889,
         health: parseInt(process.env.HEALTH_PORT) || 3001
       },
 
@@ -38,7 +39,8 @@ class BrokerConfig {
         mqtt: process.env.ENABLE_MQTT !== 'false',
         mqtts: process.env.ENABLE_MQTTS !== 'false',
         ws: process.env.ENABLE_WS !== 'false',
-        wss: process.env.ENABLE_WSS !== 'false'
+        wss: process.env.ENABLE_WSS !== 'false',
+        ocpp: process.env.ENABLE_OCPP !== 'false'
       },
 
       // Настройки брокера
@@ -160,7 +162,8 @@ class BrokerConfig {
       const port = this.config.ports[protocol];
       const status = enabled ? '✅' : '❌';
       const secure = (protocol === 'mqtts' || protocol === 'wss') ? '🔐' : '';
-      console.log(`   ${status} ${secure} ${protocol.toUpperCase()}: ${enabled ? `${this.config.domain.name}:${port}` : 'отключен'}`);
+      const icon = protocol === 'ocpp' ? '🔌' : '';
+      console.log(`   ${status} ${secure}${icon} ${protocol.toUpperCase()}: ${enabled ? `${this.config.domain.name}:${port}` : 'отключен'}`);
     });
 
     console.log(`\n   🔐 SSL: ${this.config.ssl.enabled ? '✅ включен' : '❌ отключен'}`);

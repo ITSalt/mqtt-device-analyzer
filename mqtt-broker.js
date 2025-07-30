@@ -21,7 +21,8 @@ const deviceData = {
 };
 
 // Получаем конфигурацию логирования
-const logsDir = config.get().logging.directory;
+const configData = config.get();
+const logsDir = configData.logging.directory;
 
 // Обработчик подключения клиента
 aedes.on('client', (client) => {
@@ -89,6 +90,69 @@ transportManager.on('transportError', ({ transport, error }) => {
   );
 });
 
+// Обработчики OCPP событий
+transportManager.on('ocppMessage', (data) => {
+  const timestamp = new Date().toISOString();
+  const logEntry = `${timestamp} | OCPP | Client: ${data.clientId} | Type: ${data.messageType} | Action: ${data.action || 'N/A'} | UniqueId: ${data.uniqueId}\n`;
+  
+  // Логируем OCPP сообщение
+  fs.appendFileSync(
+    path.join(logsDir, 'ocpp-messages.log'),
+    logEntry
+  );
+  
+  // Анализируем payload OCPP
+  if (data.payload) {
+    const analysis = {
+      timestamp,
+      clientId: data.clientId,
+      messageType: data.messageType,
+      action: data.action,
+      payload: data.payload,
+      protocol: 'OCPP'
+    };
+    
+    // Анализируем паттерны OCPP
+    // В данном случае просто сохраняем для статистики
+  }
+  
+  // Обновляем статистику
+  if (deviceData.transports['ocpp']) {
+    deviceData.transports['ocpp'].messages++;
+  }
+});
+
+transportManager.on('ocppBootNotification', (data) => {
+  console.log(`🔌 OCPP BootNotification от ${data.clientId}:`);
+  console.log(`   Vendor: ${data.chargePointVendor}`);
+  console.log(`   Model: ${data.chargePointModel}`);
+  console.log(`   Serial: ${data.chargePointSerialNumber}`);
+  console.log(`   Firmware: ${data.firmwareVersion}`);
+  
+  // Сохраняем информацию о зарядной станции
+  if (!deviceData.clients[data.clientId]) {
+    deviceData.clients[data.clientId] = {};
+  }
+  deviceData.clients[data.clientId].ocppInfo = {
+    vendor: data.chargePointVendor,
+    model: data.chargePointModel,
+    serial: data.chargePointSerialNumber,
+    firmware: data.firmwareVersion
+  };
+});
+
+transportManager.on('ocppStatusNotification', (data) => {
+  console.log(`⚡ OCPP StatusNotification от ${data.clientId}: Connector ${data.connectorId} = ${data.status}`);
+});
+
+transportManager.on('ocppTransactionStarted', (data) => {
+  console.log(`🚗 OCPP Transaction Started: ID ${data.transactionId} на коннекторе ${data.connectorId}`);
+});
+
+transportManager.on('ocppTransactionStopped', (data) => {
+  console.log(`🛑 OCPP Transaction Stopped: ID ${data.transactionId}, энергия: ${(data.meterStop - data.meterStart || 0) / 1000} kWh`);
+});
+
 // Анализатор payload
 function analyzePayload(payload) {
   const analysis = {
@@ -103,6 +167,21 @@ function analyzePayload(payload) {
   try {
     analysis.json = JSON.parse(payload.toString('utf8'));
     analysis.type = 'JSON';
+    
+    // Проверка на OCPP сообщение
+    if (Array.isArray(analysis.json) && analysis.json.length >= 3) {
+      const [messageTypeId, uniqueId, ...rest] = analysis.json;
+      if ([2, 3, 4].includes(messageTypeId)) {
+        analysis.type = 'OCPP';
+        analysis.ocpp = {
+          messageTypeId,
+          messageType: messageTypeId === 2 ? 'Call' : messageTypeId === 3 ? 'CallResult' : 'CallError',
+          uniqueId,
+          action: messageTypeId === 2 ? rest[0] : null,
+          payload: rest[messageTypeId === 2 ? 1 : 0]
+        };
+      }
+    }
   } catch (e) {
     // Проверка на бинарный протокол
     if (payload.length > 4) {
@@ -148,7 +227,11 @@ aedes.on('publish', (packet, client) => {
   const patternStructure = patternAnalyzer.analyze(packet.topic, packet.payload);
 
   // Выводим в консоль с информацией о транспорте
-  console.log(`\n[${timestamp}] Новое сообщение через ${clientTransport}:`);
+  if (analysis.type === 'OCPP') {
+    console.log(`\n📨 [${timestamp}] OCPP ${analysis.ocpp.messageType}${analysis.ocpp.action ? ` - ${analysis.ocpp.action}` : ''} от ${client.id}`);
+  } else {
+    console.log(`\n[${timestamp}] Новое сообщение через ${clientTransport}:`);
+  }
   console.log(`  Клиент: ${client.id}`);
   console.log(`  Топик: ${packet.topic}`);
   console.log(`  QoS: ${packet.qos}, Retain: ${packet.retain}`);
@@ -156,8 +239,13 @@ aedes.on('publish', (packet, client) => {
   console.log(`  Данные (HEX): ${analysis.hex}`);
   console.log(`  Тип: ${analysis.type}`);
 
-  if (analysis.json) {
+  if (analysis.json && analysis.type !== 'OCPP') {
     console.log(`  JSON:`, analysis.json);
+  }
+  
+  if (analysis.ocpp) {
+    console.log(`  OCPP Action: ${analysis.ocpp.action || 'N/A'}`);
+    console.log(`  OCPP Payload:`, analysis.ocpp.payload);
   }
 
   if (patternStructure) {

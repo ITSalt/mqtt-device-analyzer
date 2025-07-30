@@ -1,7 +1,7 @@
 {
   "name": "mqtt-device-analyzer",
   "version": "1.0.0",
-  "description": "MQTT broker for IoT device protocol reverse engineering",
+  "description": "MQTT broker and OCPP server for IoT device and EV charging station protocol analysis",
   "main": "mqtt-broker.js",
   "scripts": {
     "start": "node mqtt-broker.js",
@@ -23,6 +23,7 @@
     "certs:check": "node scripts/check-ssl.js",
     "test:connections": "node scripts/test-connections.js",
     "health": "curl -s http://localhost:3001/health | jq || curl -s http://localhost:3001/health",
+    "test:ocpp": "node scripts/test-ocpp-connection.js",
     "setup": "npm install && npm run certs:generate",
     "setup:domain": "npm install && MQTT_DOMAIN=$npm_config_domain npm run certs:generate",
     "config:copy": "cp domain-config.example .env",
@@ -34,13 +35,17 @@
     "mqtt",
     "iot",
     "reverse-engineering",
-    "protocol-analysis"
+    "protocol-analysis",
+    "ocpp",
+    "ev-charging",
+    "charging-station"
   ],
   "author": "Magz Nikitin",
   "license": "MIT",
   "dependencies": {
     "aedes": "^0.48.1",
-    "websocket-stream": "^5.5.2"
+    "websocket-stream": "^5.5.2",
+    "ws": "^8.14.2"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

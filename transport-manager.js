@@ -4,6 +4,7 @@ const MQTTTransport = require('./transports/mqtt-transport');
 const MQTTSTransport = require('./transports/mqtts-transport');
 const WSTransport = require('./transports/ws-transport');
 const WSSTransport = require('./transports/wss-transport');
+const OCPPTransport = require('./transports/ocpp-transport');
 
 class TransportManager extends EventEmitter {
   constructor(config, aedes) {
@@ -15,8 +16,6 @@ class TransportManager extends EventEmitter {
   }
 
   async initializeTransports() {
-    const config = this.config.get();
-    
     // Инициализируем транспорты в зависимости от конфигурации
     if (this.config.isProtocolEnabled('mqtt')) {
       const mqttTransport = new MQTTTransport(
@@ -66,6 +65,15 @@ class TransportManager extends EventEmitter {
       }
     }
 
+    if (this.config.isProtocolEnabled('ocpp')) {
+      const ocppTransport = new OCPPTransport(
+        this.config.getPort('ocpp'),
+        this.config
+      );
+      this.transports.set('ocpp', ocppTransport);
+      this.setupOCPPEventHandlers(ocppTransport);
+    }
+
     console.log(`\n📡 Инициализировано ${this.transports.size} транспортов`);
   }
 
@@ -94,6 +102,46 @@ class TransportManager extends EventEmitter {
 
     transport.on('messageReceived', (data) => {
       this.emit('messageReceived', data);
+    });
+  }
+
+  setupOCPPEventHandlers(transport) {
+    // Обработчики для OCPP транспорта
+    transport.on('error', (error) => {
+      console.error(`❌ Ошибка OCPP транспорта:`, error);
+      this.emit('transportError', { transport: 'ocpp', error });
+    });
+
+    transport.on('clientConnected', (data) => {
+      this.emit('clientConnected', data);
+    });
+
+    transport.on('clientDisconnected', (data) => {
+      this.emit('clientDisconnected', data);
+    });
+
+    transport.on('messageReceived', (data) => {
+      this.emit('ocppMessage', data);
+    });
+
+    transport.on('bootNotification', (data) => {
+      this.emit('ocppBootNotification', data);
+    });
+
+    transport.on('statusNotification', (data) => {
+      this.emit('ocppStatusNotification', data);
+    });
+
+    transport.on('transactionStarted', (data) => {
+      this.emit('ocppTransactionStarted', data);
+    });
+
+    transport.on('transactionStopped', (data) => {
+      this.emit('ocppTransactionStopped', data);
+    });
+
+    transport.on('meterValues', (data) => {
+      this.emit('ocppMeterValues', data);
     });
   }
 
